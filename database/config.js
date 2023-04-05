@@ -9,6 +9,4 @@ const db = new Sequelize({
     port: '5432',
     logging: false,
 });
-
-
 module.exports = { db };
