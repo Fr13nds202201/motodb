@@ -1,5 +1,5 @@
+const app = require('./app');
 const { db } = require('./database/config.js');
-
 
 //Autenticación con la Bse de datos
 db.authenticate()
@@ -17,4 +17,7 @@ db.sync()
         (error) => console.log(error)
     );
 
-console.log(sync());
+const port = 3000;
+app.listen(port, () => {
+    console.log(`App on port ${port}..`);
+})

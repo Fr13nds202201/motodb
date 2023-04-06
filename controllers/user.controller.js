@@ -13,7 +13,7 @@ exports.findOneUser = async (req, res) => {
     if (!user) {
         return res.status(404).json({
             status: 'error',
-            message: 'User whith id: ${id} not found',
+            message: `User whith id: ${id} not found`,
         });
     }
 
@@ -35,6 +35,7 @@ exports.findAllUsers = async (req, res) => {
         results: users.length,
         users,
     });
+    console.log(users);
 };
 
 exports.create = async (req, res) => {
