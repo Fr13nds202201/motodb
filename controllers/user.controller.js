@@ -1,6 +1,38 @@
 const User = require('./../models/users.models');
+const bcrypt = require('bcryptjs');
+const generateJWT = require('../utils/jwt');
+const AppError = require('../utils/appError');
+const catchAsync = require('./../utils/catchAsync');
 
-exports.findOneUser = async (req, res) => {
+
+exports.create = catchAsync(async (req, res, next) => {
+
+    const { name, email, password } = req.body;
+
+    const salt = await bcrypt.genSalt(12);
+    const encryptedPassword = await bcrypt.hash(password, salt);
+
+    const user = await User.create({
+        name,
+        email,
+        password: encryptedPassword,
+    });
+
+    const token = await generateJWT(user.id);
+
+    res.status(201).json({
+        status: 'SUCCESS',
+        message: 'User created successfully',
+        token,
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+        },
+    });
+});
+
+exports.findOneUser = catchAsync(async (req, res) => {
     const { id } = req.params;
     console.log(id);
     const user = await User.findOne({
@@ -22,9 +54,9 @@ exports.findOneUser = async (req, res) => {
         messge: 'the user find is successful',
         user,
     });
-};
+});
 
-exports.findAllUsers = async (req, res) => {
+exports.findAllUsers = catchAsync(async (req, res) => {
     const { requestTime } = req;
     const users = await User.findAll();
 
@@ -36,30 +68,9 @@ exports.findAllUsers = async (req, res) => {
         users,
     });
     console.log(users);
-};
+});
 
-exports.create = async (req, res) => {
-    try {
-        console.log(req.body);
-        const { name, email, password } = req.body;
-        const user = await User.create({
-            name, email, password
-        });
-        res.status(201).json({
-            status: 'SUCCESS',
-            message: 'User created successfully',
-            user,
-        });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            status: 'fail',
-            message: 'Something wen very wrong',
-        });
-    }
-};
-
-exports.updateUser = async (req, res) => {
+exports.updateUser = catchAsync(async (req, res) => {
     const { id } = req.params;
     const { name, email, password, role, status } = req.body;
     const user = await User.findOne({
@@ -86,9 +97,9 @@ exports.updateUser = async (req, res) => {
         status: 'success',
         message: 'The user has been update',
     });
-};
+});
 
-exports.delete = async (req, res) => {
+exports.delete = catchAsync(async (req, res) => {
     //Traer el id del req.params
     const { id } = req.params;
 
@@ -116,4 +127,32 @@ exports.delete = async (req, res) => {
         status: 'success',
         message: 'The user has ben deleted',
     });
-};
+});
+
+
+exports.validIfExistUser = catchAsync(async (req, res, next) => {
+
+    try {
+        const { id } = req.params;
+
+        const user = await User.findOne({
+            where: {
+                id,
+                status: 'available',
+            },
+        });
+
+        if (!user) {
+            return next(new AppError('User not found', 404));
+        }
+
+        req.user = user;
+        next();
+    } catch (error) {
+        return res.status(500).json({
+            status: 'fail',
+            message: 'Something went very wrong',
+            error,
+        });
+    }
+});
