@@ -22,10 +22,14 @@ exports.create = async (req, res) => {
 
 exports.findAllRepairs = async (req, res) => {
     const { requestTime } = req;
-    const repairsUsers = await repairs.findAll();
+    const repairsUsers = await repairs.findAll({
+        where: {
+            status: "pending"
+        }
+    });
 
     res.status(200).json({
-        statu: 'success',
+        status: 'pending',
         message: 'The query has been done successfully',
         requestTime,
         result: repairsUsers.length,
