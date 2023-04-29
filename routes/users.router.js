@@ -3,10 +3,11 @@ const router = express.Router();
 const userController = require('./../controllers/user.controller');
 const validations = require('../middlewares/validations.middlewares');
 const authController = require('../controllers/auth.controller');
+const authMiddleware = require('../middlewares/auth.middleware');
 
 router
     .route('/')
-    .get(userController.findAllUsers)
+    .get(authMiddleware.protects, userController.findAllUsers)
     .post(userController.create);
 
 router
